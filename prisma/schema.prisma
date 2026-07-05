@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Route {
+  id                String     @id @default(cuid())
+  name              String
+  origin            String
+  destination       String
+  baseFare          Int
+  doorToDoorFare    Int        @default(150)
+  doorToDoorEnabled Boolean    @default(true)
+  distanceKm        Int?
+  durationMin       Int?
+  active            Boolean    @default(true)
+  schedules         Schedule[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Schedule {
+  id              String    @id @default(cuid())
+  routeId         String
+  route           Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  departureTime   String
+  arrivalTime     String
+  vehicleCapacity Int       @default(14)
+  daysOfWeek      Int[]
+  direction       Direction
+  active          Boolean   @default(true)
+  bookings        Booking[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Booking {
+  id               String        @id @default(cuid())
+  ref              String        @unique
+  passengerName    String
+  phone            String
+  routeId          String
+  scheduleId       String
+  schedule         Schedule      @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  direction        Direction
+  pickupLocation   String
+  dropLocation     String
+  seats            Int           @default(1)
+  doorToDoor       Boolean       @default(false)
+  baseFare         Int
+  doorToDoorCharge Int           @default(0)
+  totalFare        Int
+  travelDate       DateTime
+  status           BookingStatus @default(PENDING)
+  mpesaCheckoutId  String?
+  mpesaReceipt     String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Vehicle {
+  id          String   @id @default(cuid())
+  driverName  String
+  driverPhone String?
+  plateNumber String   @unique
+  capacity    Int      @default(14)
+  type        String   @default("shuttle")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  label       String
+  description String?
+  type        String   @default("text")
+  updatedAt   DateTime @updatedAt
+}
+
+enum Direction {
+  TO_SGR
+  FROM_SGR
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}

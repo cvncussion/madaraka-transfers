@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: madaraka
+      POSTGRES_PASSWORD: madaraka123
+      POSTGRES_DB: madaraka_transfers
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://madaraka:madaraka123@db:5432/madaraka_transfers?schema=public
+      NEXTAUTH_SECRET: your-secret-key-change-me
+      NEXTAUTH_URL: http://localhost:3000
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: Madaraka2024!
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
